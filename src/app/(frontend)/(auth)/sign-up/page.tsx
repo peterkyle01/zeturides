@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import Link from 'next/link'
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -18,10 +19,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { createUser } from '@/app/server-actions/customers'
+import { SignUpUFormData, signUpUser } from '@/app/server-actions/customers'
 import { toast } from 'sonner'
 
-// Define the form schema with validation
 const formSchema = z
   .object({
     firstName: z.string().min(2, { message: 'First name must be at least 2 characters' }),
@@ -30,7 +30,7 @@ const formSchema = z
     password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
     confirmPassword: z.string(),
     phoneNumber: z.string().optional(),
-    address: z.string().optional(),
+    address: z.string().min(5, { message: 'Please enter a valid address' }),
     terms: z.boolean().refine((val) => val === true, {
       message: 'You must agree to the terms and conditions',
     }),
@@ -41,7 +41,7 @@ const formSchema = z
   })
 
 export default function SignUp() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Initialize the form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -60,28 +60,27 @@ export default function SignUp() {
 
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsSubmitting(true)
-
+    setIsLoading(true)
     try {
-      // Convert form data to FormData for the server action
-      const formData = new FormData()
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value.toString())
-      })
+      const formData: SignUpUFormData = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        phoneNumber: values.phoneNumber,
+        address: values.address,
+      }
 
-      // Call the server action
-      const result = await createUser(formData)
+      const result = await signUpUser(formData)
 
       if (result?.error) {
-        toast.error('An error occured!')
-      } else {
-        // Success - the server action should handle redirection
-        toast.success('Account Created')
+        toast.error(result.error)
       }
     } catch (error) {
-      toast.error('Something went wrong')
+      toast.error(error as string)
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
@@ -103,9 +102,7 @@ export default function SignUp() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          First Name <span className="text-destructive">*</span>
-                        </FormLabel>
+                        <FormLabel>First Name</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -119,9 +116,7 @@ export default function SignUp() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          Last Name <span className="text-destructive">*</span>
-                        </FormLabel>
+                        <FormLabel>Last Name</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -136,9 +131,7 @@ export default function SignUp() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Email <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input {...field} type="email" placeholder="name@example.com" />
                       </FormControl>
@@ -152,9 +145,7 @@ export default function SignUp() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Password <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" />
                       </FormControl>
@@ -168,9 +159,7 @@ export default function SignUp() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Confirm Password <span className="text-destructive">*</span>
-                      </FormLabel>
+                      <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
                         <Input {...field} type="password" />
                       </FormControl>
@@ -242,8 +231,15 @@ export default function SignUp() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
                 </Button>
               </form>
             </Form>

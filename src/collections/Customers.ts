@@ -7,6 +7,7 @@ export const Customers: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'email',
+    hideAPIURL: true,
   },
   fields: [
     {

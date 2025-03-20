@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     cars: Car;
     customers: Customer;
+    reviews: Review;
+    categories: Category;
     leases: Lease;
     media: Media;
     users: User;
@@ -80,6 +82,8 @@ export interface Config {
   collectionsSelect: {
     cars: CarsSelect<false> | CarsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     leases: LeasesSelect<false> | LeasesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -147,22 +151,17 @@ export interface UserAuthOperations {
  */
 export interface Car {
   id: number;
-  model: string;
   make: string;
-  year: number;
-  category: 'sedan' | 'suv' | 'hatchback' | 'truck' | 'van' | 'economy';
+  model: string;
   transmission: 'automatic' | 'manual';
   fuelType: 'gasoline' | 'diesel' | 'electric' | 'hybrid';
+  year: number;
   seats: number;
   doors: number;
+  categories: number | Category;
   dailyRate: number;
+  location?: string | null;
   monthlyRate: number;
-  images?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
   description?: {
     root: {
       type: string;
@@ -178,10 +177,31 @@ export interface Car {
     };
     [k: string]: unknown;
   } | null;
-  availability?: boolean | null;
-  location?: string | null;
+  available?: boolean | null;
   mileage?: number | null;
   licensePlate?: string | null;
+  images?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  Features?:
+    | {
+        Feature?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -227,6 +247,23 @@ export interface Customer {
   loginAttempts?: number | null;
   lockUntil?: string | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  author: number | Customer;
+  rating: 'one' | 'two' | 'three' | 'four' | 'five';
+  reviewText: string;
+  carRented: number | Car;
+  /**
+   * Check to approve review for display on site.
+   */
+  approved?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -293,6 +330,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'customers';
         value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'leases';
@@ -363,27 +408,33 @@ export interface PayloadMigration {
  * via the `definition` "cars_select".
  */
 export interface CarsSelect<T extends boolean = true> {
-  model?: T;
   make?: T;
-  year?: T;
-  category?: T;
+  model?: T;
   transmission?: T;
   fuelType?: T;
+  year?: T;
   seats?: T;
   doors?: T;
+  categories?: T;
   dailyRate?: T;
+  location?: T;
   monthlyRate?: T;
+  description?: T;
+  available?: T;
+  mileage?: T;
+  licensePlate?: T;
   images?:
     | T
     | {
         image?: T;
         id?: T;
       };
-  description?: T;
-  availability?: T;
-  location?: T;
-  mileage?: T;
-  licensePlate?: T;
+  Features?:
+    | T
+    | {
+        Feature?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -408,6 +459,28 @@ export interface CustomersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  author?: T;
+  rating?: T;
+  reviewText?: T;
+  carRented?: T;
+  approved?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

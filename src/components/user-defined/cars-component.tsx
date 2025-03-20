@@ -29,20 +29,6 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import type { Car as TCar } from '@/payload-types'
 
-// Helper function to get category label
-const getCategoryLabel = (value: string) => {
-  const categories = {
-    sedan: 'Sedan',
-    suv: 'SUV',
-    hatchback: 'Hatchback',
-    truck: 'Truck',
-    van: 'Van',
-    economy: 'Economy',
-  }
-  return categories[value as keyof typeof categories] || value
-}
-
-// Helper function to get fuel type icon
 const getFuelTypeIcon = (fuelType: string) => {
   switch (fuelType) {
     case 'electric':
@@ -82,7 +68,7 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
     }
 
     // Category filter
-    if (filters.category && car.category !== filters.category) {
+    if (filters.category && typeof car.categories !== filters.category) {
       return false
     }
 
@@ -102,7 +88,7 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
     }
 
     // Availability filter
-    if (filters.availableOnly && !car.availability) {
+    if (filters.availableOnly && !car.available) {
       return false
     }
 
@@ -132,7 +118,7 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
       transmission: '',
       fuelType: '',
       minPrice: 1000,
-      maxPrice: 50000,
+      maxPrice: 10000,
       availableOnly: false,
     })
     setSearchTerm('')
@@ -252,8 +238,8 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
                       <Slider
                         defaultValue={[filters.minPrice, filters.maxPrice]}
                         min={1000}
-                        max={50000}
-                        step={1000}
+                        max={10000}
+                        step={500}
                         onValueChange={(value) =>
                           setFilters({
                             ...filters,
@@ -367,13 +353,13 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
                               className="object-cover transition-transform group-hover:scale-105"
                             />
                           </div>
-                          {!car.availability && (
-                            <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground px-2 py-1 text-xs font-medium">
+                          {!car.available && (
+                            <div className="absolute top-0 rounded-bl-md right-0 bg-destructive text-destructive-foreground px-2 py-1 text-xs font-medium">
                               Not Available
                             </div>
                           )}
                           <div className="absolute top-0 left-0 bg-primary text-primary-foreground px-2 py-1 text-xs font-medium">
-                            {getCategoryLabel(car.category)}
+                            {typeof car.categories !== 'number' && car.categories.name}
                           </div>
                         </div>
                         <div className="p-4">
@@ -432,13 +418,13 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          {!car.availability && (
+                          {!car.available && (
                             <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground px-2 py-1 text-xs font-medium">
                               Not Available
                             </div>
                           )}
                           <div className="absolute top-0 left-0 bg-primary text-primary-foreground px-2 py-1 text-xs font-medium">
-                            {getCategoryLabel(car.category)}
+                            {typeof car.categories !== 'number' && car.categories.name}
                           </div>
                         </div>
                         <div className="sm:w-2/3 flex flex-col">

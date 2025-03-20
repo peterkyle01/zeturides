@@ -3,40 +3,155 @@
 import { redirect } from 'next/navigation'
 import config from '@/payload.config'
 import { getPayload } from 'payload'
+import { z } from 'zod'
+import { headers as getHeaders } from 'next/headers'
 
-export async function createUser(formData: FormData) {
-  // Validate data (basic example)
-  if (formData.get('password') !== formData.get('confirmPassword')) {
-    // In a real app, you'd want to return this error to the form
-    console.error("Passwords don't match")
-    return { error: "Passwords don't match" }
-  }
+// Schema for user registration
+const signUpUserSchema = z
+  .object({
+    firstName: z.string().min(2, { message: 'First name must be at least 2 characters' }),
+    lastName: z.string().min(2, { message: 'Last name must be at least 2 characters' }),
+    email: z.string().email({ message: 'Please enter a valid email address' }),
+    password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
+    confirmPassword: z.string(),
+    phoneNumber: z.string().optional(),
+    address: z.string().min(5, { message: 'Please enter a valid address' }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 
+// Schema for sign in
+const signInSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  remember: z.boolean().default(false),
+})
+
+export type SignUpUFormData = z.infer<typeof signUpUserSchema>
+export type SignInFormData = z.infer<typeof signInSchema>
+
+export async function getUser() {
+  const payload = await getPayload({ config })
+  const headers = await getHeaders()
+  const { user } = await payload.auth({ headers })
+
+  return user
+}
+
+export async function signUpUser(formData: SignUpUFormData) {
   try {
+    // Validate form data
+    const validatedData = signUpUserSchema.parse(formData)
+
     const payloadConfig = await config
     const payload = await getPayload({ config: payloadConfig })
 
-    const customer = await payload.create({
+    // Check if user already exists
+    const existingUser = await payload.find({
       collection: 'customers',
-      data: {
-        firstName: formData.get('firstName')?.toString() || '',
-        lastName: formData.get('lastName')?.toString() || '',
-        email: formData.get('email')?.toString() || '',
-        password: formData.get('password')?.toString() || '',
-        phoneNumber: formData.get('phoneNumber')?.toString() || '',
-        address: formData.get('address')?.toString() || '',
+      where: {
+        email: {
+          equals: validatedData.email,
+        },
       },
     })
 
-    console.log('Customer created:', customer)
-    redirect('/sign-up/success')
-  } catch (error: any) {
-    console.error('Error creating user:', error)
-    // Extract more detailed error information if available
-    if (error.errors) {
-      console.error('Validation errors:', error.errors)
-      return { error: 'Validation failed. Please check your information.', details: error.errors }
+    if (existingUser.totalDocs > 0) {
+      return { error: 'A user with this email already exists' }
     }
-    return { error: 'Failed to create user. Please try again.' }
+
+    await payload.create({
+      collection: 'customers',
+      data: {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        email: validatedData.email,
+        password: validatedData.password,
+        phoneNumber: validatedData.phoneNumber || '',
+        address: validatedData.address,
+      },
+    })
+
+    redirect('/sign-up/success')
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        error: 'Validation failed',
+        details: error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+        })),
+      }
+    }
+
+    console.error('Error creating user:', error)
+    return {
+      error: 'Failed to create user. Please try again.',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    }
   }
+}
+
+export async function signInUser(formData: SignInFormData) {
+  try {
+    // Validate form data
+    const validatedData = signInSchema.parse(formData)
+
+    const payloadConfig = await config
+    const payload = await getPayload({ config: payloadConfig })
+    // Find user and verify credentials
+    const { docs: users } = await payload.find({
+      collection: 'customers',
+      where: {
+        email: {
+          equals: validatedData.email,
+        },
+      },
+    })
+
+    if (users.length === 0) {
+      return { error: 'Sign Up first!' }
+    }
+
+    const result = await payload.login({
+      collection: 'customers',
+      data: {
+        email: validatedData.email,
+        password: validatedData.password,
+      },
+    })
+
+    if (!result.token) {
+      return { error: 'Invalid email or password' }
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        error: 'Validation failed',
+        details: error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+        })),
+      }
+    }
+
+    console.error('Error signing in:', error)
+    return {
+      error: 'Failed to sign in. Please try again.',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+export async function signOutUser() {
+  await fetch('http://localhost:3000/api/customers/logout', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  console.log('logged out')
+  redirect('/')
 }

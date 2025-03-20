@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,12 +18,14 @@ import {
   Star,
   Users,
 } from 'lucide-react'
+import { RichText } from '@payloadcms/richtext-lexical/react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import type { Car } from '@/payload-types'
 import { getSingleCar } from '@/app/server-actions/cars'
+import { copyTextToClipboard } from '@/lib/utils'
 
 export default function CarDetailsPage() {
   const { id } = useParams()
@@ -30,7 +33,7 @@ export default function CarDetailsPage() {
   const [car, setCar] = useState<Car | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-
+  console.log(car)
   useEffect(() => {
     const loadCar = async () => {
       try {
@@ -81,7 +84,7 @@ export default function CarDetailsPage() {
     },
     { icon: <Calendar className="h-5 w-5" />, label: `${car.year}` },
   ]
-
+  console.log(car)
   return (
     <div className="min-h-screen bg-background">
       <div className="container px-4 py-8 mx-auto">
@@ -130,7 +133,7 @@ export default function CarDetailsPage() {
                   className="object-cover"
                 />
               </div>
-              {!car.availability && (
+              {!car.available && (
                 <div className="absolute top-4 right-4 bg-destructive text-destructive-foreground px-3 py-1 rounded-md font-medium">
                   Not Available
                 </div>
@@ -139,7 +142,7 @@ export default function CarDetailsPage() {
 
             {/* Thumbnail images */}
             <div className="flex space-x-2 overflow-x-auto pb-2">
-              {car?.images.map((image, index) => (
+              {car?.images?.map((image, index) => (
                 <button
                   key={index}
                   className={`relative rounded-md overflow-hidden border ${
@@ -149,7 +152,9 @@ export default function CarDetailsPage() {
                 >
                   <div className="w-20 h-20">
                     <Image
+                      // @ts-expect-error url
                       src={image.image?.url || '/placeholder.svg'}
+                      // @ts-expect-error url
                       alt={image.image?.alt || `${car.make} ${car.model} view ${index + 1}`}
                       fill
                       className="object-cover"
@@ -197,7 +202,9 @@ export default function CarDetailsPage() {
               </TabsList>
               <TabsContent value="description" className="space-y-4">
                 <h3 className="text-xl font-semibold">About this car</h3>
-                <p className="text-muted-foreground">{car.description}</p>
+                <p className="text-muted-foreground">
+                  <RichText data={car.description as SerializedEditorState} />
+                </p>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
@@ -215,7 +222,7 @@ export default function CarDetailsPage() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Category</span>
                       <span className="font-medium">
-                        {car.category.charAt(0).toUpperCase() + car.category.slice(1)}
+                        {typeof car.categories !== 'number' && car.categories.name}
                       </span>
                     </div>
                   </div>
@@ -234,11 +241,11 @@ export default function CarDetailsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Mileage</span>
-                      <span className="font-medium">{car.mileage.toLocaleString()} km</span>
+                      <span className="font-medium">{car.mileage} km</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">License Plate</span>
-                      <span className="font-medium">{car.licensePlate}</span>
+                      <span className="font-medium">{car?.licensePlate}</span>
                     </div>
                   </div>
                 </div>
@@ -280,13 +287,19 @@ export default function CarDetailsPage() {
 
           {/* Right column - Booking and info */}
           <div className="space-y-6">
-            <div className="bg-background rounded-lg border p-6 sticky top-6">
+            <div className="bg-background rounded-lg border p-6 sticky top-18">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <div className="text-2xl font-bold">KSh {car.dailyRate.toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">per day</div>
                 </div>
-                <Button variant="outline" size="icon">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    copyTextToClipboard(window.location.origin + window.location.pathname)
+                  }
+                >
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -300,7 +313,7 @@ export default function CarDetailsPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Security deposit</span>
-                  <span className="font-medium">KSh 10,000</span>
+                  <span className="font-medium">KSh {0.2 * car.monthlyRate}</span>
                 </div>
               </div>
 

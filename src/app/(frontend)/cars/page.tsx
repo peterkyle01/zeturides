@@ -1,4 +1,4 @@
-import CarsComponent from './cars-component'
+import CarsComponent from '../../../components/user-defined/cars-component'
 import config from '@/payload.config'
 import { getPayload } from 'payload'
 
@@ -8,7 +8,6 @@ export default async function CarsPage() {
   const { docs: cars } = await payload.find({
     collection: 'cars',
   })
-  console.log(cars)
   return (
     <div>
       <CarsComponent mockCars={cars} />

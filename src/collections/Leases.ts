@@ -4,6 +4,7 @@ export const Leases: CollectionConfig = {
   slug: 'leases',
   admin: {
     useAsTitle: 'leaseId',
+    hideAPIURL: true,
   },
   fields: [
     {
