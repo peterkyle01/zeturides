@@ -1,10 +1,12 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import config from '@/payload.config'
 import { getPayload } from 'payload'
 import { z } from 'zod'
 import { headers as getHeaders } from 'next/headers'
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+import { Customer } from '@/payload-types'
 
 // Schema for user registration
 const signUpUserSchema = z
@@ -35,7 +37,10 @@ export type SignInFormData = z.infer<typeof signInSchema>
 export async function getUser() {
   const payload = await getPayload({ config })
   const headers = await getHeaders()
-  const { user } = await payload.auth({ headers })
+  const res = await payload.auth({ headers })
+
+  // @ts-expect-error type
+  const { user }: { user: Customer } = res
 
   return user
 }
@@ -44,18 +49,12 @@ export async function signUpUser(formData: SignUpUFormData) {
   try {
     // Validate form data
     const validatedData = signUpUserSchema.parse(formData)
-
-    const payloadConfig = await config
-    const payload = await getPayload({ config: payloadConfig })
+    const payload = await getPayload({ config })
 
     // Check if user already exists
     const existingUser = await payload.find({
       collection: 'customers',
-      where: {
-        email: {
-          equals: validatedData.email,
-        },
-      },
+      where: { email: { equals: validatedData.email } },
     })
 
     if (existingUser.totalDocs > 0) {
@@ -64,33 +63,17 @@ export async function signUpUser(formData: SignUpUFormData) {
 
     await payload.create({
       collection: 'customers',
-      data: {
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        email: validatedData.email,
-        password: validatedData.password,
-        phoneNumber: validatedData.phoneNumber || '',
-        address: validatedData.address,
-      },
+      data: validatedData,
     })
 
-    redirect('/sign-up/success')
+    // Auto-login after successful registration
+    return await signInUser({
+      email: validatedData.email,
+      password: validatedData.password,
+      remember: false,
+    })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        error: 'Validation failed',
-        details: error.errors.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        })),
-      }
-    }
-
-    console.error('Error creating user:', error)
-    return {
-      error: 'Failed to create user. Please try again.',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }
+    return handleError(error, 'Failed to create user')
   }
 }
 
@@ -98,60 +81,64 @@ export async function signInUser(formData: SignInFormData) {
   try {
     // Validate form data
     const validatedData = signInSchema.parse(formData)
+    const payload = await getPayload({ config })
 
-    const payloadConfig = await config
-    const payload = await getPayload({ config: payloadConfig })
     // Find user and verify credentials
     const { docs: users } = await payload.find({
       collection: 'customers',
-      where: {
-        email: {
-          equals: validatedData.email,
-        },
-      },
+      where: { email: { equals: validatedData.email } },
     })
 
     if (users.length === 0) {
-      return { error: 'Sign Up first!' }
+      return { error: 'Sign up first!' }
     }
 
     const result = await payload.login({
       collection: 'customers',
-      data: {
-        email: validatedData.email,
-        password: validatedData.password,
-      },
+      data: validatedData,
     })
 
     if (!result.token) {
       return { error: 'Invalid email or password' }
     }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        error: 'Validation failed',
-        details: error.errors.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        })),
-      }
-    }
 
-    console.error('Error signing in:', error)
-    return {
-      error: 'Failed to sign in. Please try again.',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }
+    ;(await cookies()).set('payload-token', result.token, {
+      httpOnly: true,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    })
+
+    return { success: true, token: result.token }
+  } catch (error) {
+    return handleError(error, 'Failed to sign in')
   }
 }
 
 export async function signOutUser() {
-  await fetch('http://localhost:3000/api/customers/logout', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  console.log('logged out')
-  redirect('/')
+  try {
+    ;(await cookies()).set('payload-token', '', {
+      httpOnly: true,
+      path: '/',
+      maxAge: 0,
+    })
+  } catch (error) {
+    console.error('Error signing out:', error)
+  }
+}
+
+function handleError(error: unknown, defaultMessage: string) {
+  if (error instanceof z.ZodError) {
+    return {
+      error: 'Validation failed',
+      details: error.errors.map((err) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      })),
+    }
+  }
+  console.error(defaultMessage, error)
+  return {
+    error: defaultMessage,
+    details: error instanceof Error ? error.message : 'Unknown error',
+  }
 }

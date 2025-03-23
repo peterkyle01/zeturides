@@ -17,8 +17,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
 import { SignInFormData, signInUser } from '@/app/server-actions/customers'
+import { toast } from 'react-toastify'
+import { useRouter } from 'next/navigation'
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -28,6 +29,7 @@ const formSchema = z.object({
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const form = useForm<SignInFormData>({
     resolver: zodResolver(formSchema),
@@ -42,9 +44,9 @@ export default function SignIn() {
     setIsLoading(true)
     try {
       const result = await signInUser(data)
-
-      if (result.error) {
-        toast.error(result.error)
+      router.push('/')
+      if (result?.error) {
+        toast.error(result?.error)
         return
       }
       toast.success('You have successfully signed in')

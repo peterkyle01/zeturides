@@ -1,10 +1,10 @@
 import React from 'react'
 import './global.css'
 import Link from 'next/link'
-import { Toaster } from 'sonner'
+import { Flip, ToastContainer } from 'react-toastify'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { getUser, signOutUser } from '../server-actions/customers'
+import { getUser } from '../server-actions/customers'
+import LogoutBtn from '@/components/user-defined/logout-btn'
 
 export const metadata = {
   description: 'A blank template using Payload in a Next.js app.',
@@ -62,13 +62,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 Contact
               </Link>
             </nav>
+
+           
             {user ? (
-              <>
-                {user.email}
-                <form action={signOutUser}>
-                  <Button>Log Out</Button>
-                </form>
-              </>
+              <LogoutBtn {...user} />
             ) : (
               <div className="flex items-center gap-4">
                 <Link href="/sign-in" className="text-sm font-medium">
@@ -115,7 +112,19 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             </div>
           </div>
         </footer>
-        <Toaster richColors />
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          transition={Flip}
+        />
       </body>
     </html>
   )

@@ -202,9 +202,7 @@ export default function CarDetailsPage() {
               </TabsList>
               <TabsContent value="description" className="space-y-4">
                 <h3 className="text-xl font-semibold">About this car</h3>
-                <p className="text-muted-foreground">
-                  <RichText data={car.description as SerializedEditorState} />
-                </p>
+                <RichText data={car.description as SerializedEditorState} />
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">

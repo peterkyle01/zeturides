@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SignUpUFormData, signUpUser } from '@/app/server-actions/customers'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 const formSchema = z
   .object({
@@ -42,6 +43,7 @@ const formSchema = z
 
 export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   // Initialize the form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -77,6 +79,8 @@ export default function SignUp() {
       if (result?.error) {
         toast.error(result.error)
       }
+
+      router.push('/')
     } catch (error) {
       toast.error(error as string)
     } finally {
