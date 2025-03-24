@@ -272,13 +272,11 @@ export interface Review {
  */
 export interface Lease {
   id: number;
-  leaseId: string;
   customer: number | Customer;
   car: number | Car;
+  leaseType: 'daily' | 'monthly';
   startDate: string;
   endDate: string;
-  leaseType: 'daily' | 'monthly';
-  totalAmount: number;
   paymentStatus: 'pending' | 'paid' | 'refunded';
   pickupLocation?: string | null;
   returnLocation?: string | null;
@@ -297,6 +295,7 @@ export interface Lease {
     };
     [k: string]: unknown;
   } | null;
+  totalAmount: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -488,17 +487,16 @@ export interface CategoriesSelect<T extends boolean = true> {
  * via the `definition` "leases_select".
  */
 export interface LeasesSelect<T extends boolean = true> {
-  leaseId?: T;
   customer?: T;
   car?: T;
+  leaseType?: T;
   startDate?: T;
   endDate?: T;
-  leaseType?: T;
-  totalAmount?: T;
   paymentStatus?: T;
   pickupLocation?: T;
   returnLocation?: T;
   notes?: T;
+  totalAmount?: T;
   updatedAt?: T;
   createdAt?: T;
 }

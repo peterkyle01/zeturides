@@ -24,9 +24,14 @@ export default function LogoutBtn(user: Customer) {
   console.log(user)
   return (
     <>
-      <div className="w-12 h-12 flex items-center justify-center rounded-full bg-brand-brown text-black font-bold text-lg">
-        {user.firstName.charAt(0).toUpperCase() + '.' + user.lastName.charAt(0).toUpperCase()}
-      </div>
+      {user.firstName ? (
+        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-brand-brown text-black font-bold text-lg">
+          {user.firstName.charAt(0).toUpperCase() + '.' + user.lastName.charAt(0).toUpperCase()}
+        </div>
+      ) : (
+        <p className="text-sm font-bold">ADMIN</p>
+      )}
+
       <Button size={'sm'} onClick={onLogOut}>
         Log Out
       </Button>

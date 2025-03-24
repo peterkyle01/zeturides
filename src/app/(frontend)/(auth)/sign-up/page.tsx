@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SignUpUFormData, signUpUser } from '@/app/server-actions/customers'
-import { toast } from 'sonner'
+import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 
 const formSchema = z

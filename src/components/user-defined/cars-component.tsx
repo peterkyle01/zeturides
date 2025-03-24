@@ -389,8 +389,10 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
                             <div className="text-right">
                               <div className="text-lg font-bold">
                                 KSh {car.dailyRate.toLocaleString()}
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  &nbsp;per day
+                                </span>
                               </div>
-                              <div className="text-xs text-muted-foreground">per day</div>
                             </div>
                           </div>
                           <Link href={`/cars/${car.id}`} className="w-full mt-4">

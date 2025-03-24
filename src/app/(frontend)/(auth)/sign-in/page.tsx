@@ -19,7 +19,7 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { SignInFormData, signInUser } from '@/app/server-actions/customers'
 import { toast } from 'react-toastify'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -30,7 +30,8 @@ const formSchema = z.object({
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from') || '/'
   const form = useForm<SignInFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,7 +45,7 @@ export default function SignIn() {
     setIsLoading(true)
     try {
       const result = await signInUser(data)
-      router.push('/')
+      router.push(from)
       if (result?.error) {
         toast.error(result?.error)
         return

@@ -3,37 +3,26 @@ import { CollectionConfig } from 'payload'
 export const Leases: CollectionConfig = {
   slug: 'leases',
   admin: {
-    useAsTitle: 'leaseId',
+    useAsTitle: 'car',
     hideAPIURL: true,
   },
   fields: [
     {
-      name: 'leaseId',
-      type: 'text',
-      unique: true,
-      required: true,
-    },
-    {
-      name: 'customer',
-      type: 'relationship',
-      relationTo: 'customers',
-      required: true,
-    },
-    {
-      name: 'car',
-      type: 'relationship',
-      relationTo: 'cars',
-      required: true,
-    },
-    {
-      name: 'startDate',
-      type: 'date',
-      required: true,
-    },
-    {
-      name: 'endDate',
-      type: 'date',
-      required: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'customer',
+          type: 'relationship',
+          relationTo: 'customers',
+          required: true,
+        },
+        {
+          name: 'car',
+          type: 'relationship',
+          relationTo: 'cars',
+          required: true,
+        },
+      ],
     },
     {
       name: 'leaseType',
@@ -45,9 +34,19 @@ export const Leases: CollectionConfig = {
       required: true,
     },
     {
-      name: 'totalAmount',
-      type: 'number',
-      required: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'startDate',
+          type: 'date',
+          required: true,
+        },
+        {
+          name: 'endDate',
+          type: 'date',
+          required: true,
+        },
+      ],
     },
     {
       name: 'paymentStatus',
@@ -60,16 +59,26 @@ export const Leases: CollectionConfig = {
       required: true,
     },
     {
-      name: 'pickupLocation',
-      type: 'text',
-    },
-    {
-      name: 'returnLocation',
-      type: 'text',
+      type: 'row',
+      fields: [
+        {
+          name: 'pickupLocation',
+          type: 'text',
+        },
+        {
+          name: 'returnLocation',
+          type: 'text',
+        },
+      ],
     },
     {
       name: 'notes',
       type: 'richText',
+    },
+    {
+      name: 'totalAmount',
+      type: 'number',
+      required: true,
     },
   ],
 }

@@ -5,8 +5,8 @@ import { getPayload } from 'payload'
 import { z } from 'zod'
 import { headers as getHeaders } from 'next/headers'
 import { cookies } from 'next/headers'
-import { revalidatePath } from 'next/cache'
 import { Customer } from '@/payload-types'
+import { handleError } from '@/lib/utils'
 
 // Schema for user registration
 const signUpUserSchema = z
@@ -123,22 +123,5 @@ export async function signOutUser() {
     })
   } catch (error) {
     console.error('Error signing out:', error)
-  }
-}
-
-function handleError(error: unknown, defaultMessage: string) {
-  if (error instanceof z.ZodError) {
-    return {
-      error: 'Validation failed',
-      details: error.errors.map((err) => ({
-        field: err.path.join('.'),
-        message: err.message,
-      })),
-    }
-  }
-  console.error(defaultMessage, error)
-  return {
-    error: defaultMessage,
-    details: error instanceof Error ? error.message : 'Unknown error',
   }
 }
