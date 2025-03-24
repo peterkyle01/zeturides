@@ -21,7 +21,6 @@ export default function LogoutBtn(user: Customer) {
     await signOutUser()
     router.refresh()
   }
-  console.log(user)
   return (
     <>
       {user.firstName ? (

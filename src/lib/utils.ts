@@ -36,3 +36,10 @@ export function handleError(error: unknown, defaultMessage: string) {
     details: error instanceof Error ? error.message : 'Unknown error',
   }
 }
+
+export function getDaysDifference(startDate: Date, endDate: Date) {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const differenceInTime = end.getTime() - start.getTime()
+  return differenceInTime / (1000 * 60 * 60 * 24)
+}

@@ -43,18 +43,22 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               >
                 Cars
               </Link>
-              <Link
-                href="#"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                Locations
-              </Link>
-              <Link
-                href="#"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                About
-              </Link>
+              {user && (
+                <>
+                  <Link
+                    href="#"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Profile
+                  </Link>
+                </>
+              )}
               <Link
                 href="#"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -63,7 +67,6 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               </Link>
             </nav>
 
-           
             {user ? (
               <LogoutBtn {...user} />
             ) : (

@@ -7,6 +7,7 @@ import { headers as getHeaders } from 'next/headers'
 import { cookies } from 'next/headers'
 import { Customer } from '@/payload-types'
 import { handleError } from '@/lib/utils'
+import { EditProfileFormData } from '@/lib/form-schemas'
 
 // Schema for user registration
 const signUpUserSchema = z
@@ -122,6 +123,26 @@ export async function signOutUser() {
       maxAge: 0,
     })
   } catch (error) {
-    console.error('Error signing out:', error)
+    return handleError(error, 'Error signing out')
+  }
+}
+
+export async function editCustomer(customerId: number, updatedData: EditProfileFormData) {
+  try {
+    const payload = await getPayload({ config })
+
+    const updatedCustomer = await payload.update({
+      collection: 'customers',
+      id: customerId,
+      data: {
+        ...(updatedData as unknown as Partial<Customer>),
+        isValid: false,
+      },
+    })
+
+    return updatedCustomer
+  } catch (error) {
+    console.error('Error updating customer:', error)
+    return handleError(error, 'Error updating customer')
   }
 }

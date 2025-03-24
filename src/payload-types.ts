@@ -162,22 +162,7 @@ export interface Car {
   categories: number | Category;
   dailyRate: number;
   location?: string | null;
-  monthlyRate: number;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  description?: string | null;
   available?: boolean | null;
   mileage?: number | null;
   licensePlate?: string | null;
@@ -234,9 +219,10 @@ export interface Customer {
   firstName: string;
   lastName: string;
   idNumber?: number | null;
+  licenseNumber?: string | null;
   phoneNumber?: string | null;
   address?: string | null;
-  licenseNumber?: string | null;
+  isValid?: boolean | null;
   licenseExpiryDate?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -274,27 +260,12 @@ export interface Lease {
   id: number;
   customer: number | Customer;
   car: number | Car;
-  leaseType: 'daily' | 'monthly';
   startDate: string;
   endDate: string;
   paymentStatus: 'pending' | 'paid' | 'refunded';
   pickupLocation?: string | null;
   returnLocation?: string | null;
-  notes?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  notes?: string | null;
   totalAmount: number;
   updatedAt: string;
   createdAt: string;
@@ -418,7 +389,6 @@ export interface CarsSelect<T extends boolean = true> {
   categories?: T;
   dailyRate?: T;
   location?: T;
-  monthlyRate?: T;
   description?: T;
   available?: T;
   mileage?: T;
@@ -446,9 +416,10 @@ export interface CustomersSelect<T extends boolean = true> {
   firstName?: T;
   lastName?: T;
   idNumber?: T;
+  licenseNumber?: T;
   phoneNumber?: T;
   address?: T;
-  licenseNumber?: T;
+  isValid?: T;
   licenseExpiryDate?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -489,7 +460,6 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface LeasesSelect<T extends boolean = true> {
   customer?: T;
   car?: T;
-  leaseType?: T;
   startDate?: T;
   endDate?: T;
   paymentStatus?: T;

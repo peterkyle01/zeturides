@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -18,20 +17,27 @@ import {
   Star,
   Users,
 } from 'lucide-react'
-import { RichText } from '@payloadcms/richtext-lexical/react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import type { Car, Customer } from '@/payload-types'
+import type { Car, Customer, Lease } from '@/payload-types'
 import { copyTextToClipboard } from '@/lib/utils'
 import RentComponent from '@/components/user-defined/rent-component'
+import { LeaseComponent } from '@/components/user-defined/lease-component'
 
-export default function CarDetails({ car, user }: { car: Car; user: Customer }) {
+export default function CarDetails({
+  car,
+  user,
+  lease = null,
+}: {
+  car: Car
+  user: Customer
+  lease?: Lease | null
+}) {
   const router = useRouter()
   const pathname = usePathname()
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  console.log(car)
   if (!car) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -57,7 +63,6 @@ export default function CarDetails({ car, user }: { car: Car; user: Customer }) 
     },
     { icon: <Calendar className="h-5 w-5" />, label: `${car.year}` },
   ]
-  console.log(car)
   return (
     <div className="min-h-screen bg-background">
       <div className="container px-4 py-8 mx-auto">
@@ -175,7 +180,7 @@ export default function CarDetails({ car, user }: { car: Car; user: Customer }) 
               </TabsList>
               <TabsContent value="description" className="space-y-4">
                 <h3 className="text-xl font-semibold">About this car</h3>
-                <RichText data={car.description as SerializedEditorState} />
+                <p className="text-neutral-600">{car.description}</p>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
@@ -269,11 +274,11 @@ export default function CarDetails({ car, user }: { car: Car; user: Customer }) 
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Monthly rate</span>
-                  <span className="font-medium">KSh {car.monthlyRate.toLocaleString()}</span>
+                  <span className="font-medium">KSh {car.dailyRate * 30}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Security deposit</span>
-                  <span className="font-medium">KSh {0.2 * car.monthlyRate}</span>
+                  <span className="font-medium">KSh {0.2 * car.dailyRate * 30}</span>
                 </div>
               </div>
 
@@ -281,7 +286,21 @@ export default function CarDetails({ car, user }: { car: Car; user: Customer }) 
 
               <div className="space-y-4">
                 {user ? (
-                  <RentComponent carId={car.id} />
+                  user.licenseNumber && user.idNumber ? (
+                    !user.isValid ? (
+                      <Link href={'/profile'}>
+                        <Button className="w-full my-2">Profile Verification</Button>
+                      </Link>
+                    ) : lease ? (
+                      <LeaseComponent lease={lease} />
+                    ) : (
+                      <RentComponent car={car} />
+                    )
+                  ) : (
+                    <Link href={'/profile'}>
+                      <Button className="w-full my-2">Add ID or License</Button>
+                    </Link>
+                  )
                 ) : (
                   <Button
                     className="w-full my-2"

@@ -27,7 +27,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import type { Car as TCar } from '@/payload-types'
+import type { Category, Car as TCar } from '@/payload-types'
 
 const getFuelTypeIcon = (fuelType: string) => {
   switch (fuelType) {
@@ -42,8 +42,13 @@ const getFuelTypeIcon = (fuelType: string) => {
   }
 }
 
-export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
-  console.log(mockCars)
+export default function CarsComponent({
+  mockCars,
+  categories,
+}: {
+  mockCars: TCar[]
+  categories: Category[]
+}) {
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [filterOpen, setFilterOpen] = useState(true)
@@ -182,13 +187,11 @@ export default function CarsComponent({ mockCars }: { mockCars: TCar[] }) {
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="sedan">Sedan</SelectItem>
-                        <SelectItem value="suv">SUV</SelectItem>
-                        <SelectItem value="hatchback">Hatchback</SelectItem>
-                        <SelectItem value="truck">Truck</SelectItem>
-                        <SelectItem value="van">Van</SelectItem>
-                        <SelectItem value="economy">Economy</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

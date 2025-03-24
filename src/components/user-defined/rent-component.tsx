@@ -23,37 +23,29 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { AlertDialogDescription } from '@radix-ui/react-alert-dialog'
 import { Textarea } from '../ui/textarea'
 import { CreateLeaseFormData, createLeaseSchema } from '@/lib/form-schemas'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import { createLease } from '@/app/server-actions/leases'
+import { Car } from '@/payload-types'
 
-export default function RentComponent({ carId }: { carId: number }) {
+export default function RentComponent({ car }: { car: Car }) {
   const router = useRouter()
   const form = useForm<CreateLeaseFormData>({
     resolver: zodResolver(createLeaseSchema),
     defaultValues: {
       startDate: new Date().toDateString(),
       endDate: new Date().toDateString(),
-      leaseType: 'daily',
       notes: '',
     },
   })
 
   async function onSubmit(values: CreateLeaseFormData) {
     try {
-
-      const result = await createLease(values)
-      router.push('/')
+      const result = await createLease(car, values)
+      router.refresh()
       if (result?.error) {
         toast.error(result?.error)
         return
@@ -67,7 +59,13 @@ export default function RentComponent({ carId }: { carId: number }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button className="w-full">Rent Now</Button>
+        {car.available ? (
+          <Button className="w-full">Rent Now</Button>
+        ) : (
+          <Button className="w-full" disabled>
+            Not Available
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -124,30 +122,6 @@ export default function RentComponent({ carId }: { carId: number }) {
                 )}
               />
             </div>
-            <div className="w-full">
-              <FormField
-                control={form.control}
-                name="leaseType"
-                render={({ field }) => (
-                  <FormItem className="w-full ">
-                    <FormLabel>Lease Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select lease type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}

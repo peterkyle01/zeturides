@@ -25,15 +25,6 @@ export const Leases: CollectionConfig = {
       ],
     },
     {
-      name: 'leaseType',
-      type: 'select',
-      options: [
-        { label: 'Daily', value: 'daily' },
-        { label: 'Monthly', value: 'monthly' },
-      ],
-      required: true,
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -73,7 +64,7 @@ export const Leases: CollectionConfig = {
     },
     {
       name: 'notes',
-      type: 'richText',
+      type: 'textarea',
     },
     {
       name: 'totalAmount',

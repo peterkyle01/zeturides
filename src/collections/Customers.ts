@@ -11,34 +11,58 @@ export const Customers: CollectionConfig = {
   },
   fields: [
     {
-      name: 'firstName',
-      type: 'text',
-      required: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'firstName',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'lastName',
+          type: 'text',
+          required: true,
+        },
+      ],
     },
     {
-      name: 'lastName',
-      type: 'text',
-      required: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'idNumber',
+          type: 'number',
+        },
+        {
+          name: 'licenseNumber',
+          type: 'text',
+        },
+      ],
     },
     {
-      name: 'idNumber',
-      type: 'number',
+      type: 'row',
+      fields: [
+        {
+          name: 'phoneNumber',
+          type: 'text',
+        },
+        {
+          name: 'address',
+          type: 'text',
+        },
+      ],
     },
     {
-      name: 'phoneNumber',
-      type: 'text',
-    },
-    {
-      name: 'address',
-      type: 'text',
-    },
-    {
-      name: 'licenseNumber',
-      type: 'text',
-    },
-    {
-      name: 'licenseExpiryDate',
-      type: 'date',
+      type: 'row',
+      fields: [
+        {
+          type: 'checkbox',
+          name: 'isValid',
+        },
+        {
+          name: 'licenseExpiryDate',
+          type: 'date',
+        },
+      ],
     },
   ],
 }

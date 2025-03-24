@@ -92,16 +92,11 @@ export const Cars: CollectionConfig = {
           name: 'location',
           type: 'text',
         },
-        {
-          name: 'monthlyRate',
-          type: 'number',
-          required: true,
-        },
       ],
     },
     {
       name: 'description',
-      type: 'richText',
+      type: 'textarea',
     },
     {
       name: 'available',
