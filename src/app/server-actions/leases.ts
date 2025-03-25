@@ -49,3 +49,19 @@ export async function getOneLease(car: Car, user: Customer) {
   })
   return lease[0] || null
 }
+
+export async function getAllUserLeases() {
+  const user = await getUser()
+  const payload = await getPayload({ config })
+  if (user) {
+    const { docs: lease } = await payload.find({
+      collection: 'leases',
+      where: {
+        customer: {
+          equals: user.id,
+        },
+      },
+    })
+    return lease || null
+  }
+}

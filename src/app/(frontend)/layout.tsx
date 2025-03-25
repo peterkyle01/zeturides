@@ -46,7 +46,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               {user && (
                 <>
                   <Link
-                    href="#"
+                    href="/orders"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground"
                   >
                     Orders

@@ -43,3 +43,5 @@ export function getDaysDifference(startDate: Date, endDate: Date) {
   const differenceInTime = end.getTime() - start.getTime()
   return differenceInTime / (1000 * 60 * 60 * 24)
 }
+
+export const APP_ENV: 'LOCAL' | 'PROD' = process.env.APP_ENV as 'LOCAL' | 'PROD'
