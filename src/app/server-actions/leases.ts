@@ -5,24 +5,32 @@ import { getPayload } from 'payload'
 import { getDaysDifference, handleError } from '@/lib/utils'
 import { getUser } from './customers'
 import { CreateLeaseFormData, createLeaseSchema } from '@/lib/form-schemas'
-import { Car, Customer } from '@/payload-types'
+import { Car, Customer, Lease } from '@/payload-types'
 
 export async function createLease(car: Car, formData: CreateLeaseFormData) {
   const user = await getUser()
   const validatedData = createLeaseSchema.parse(formData)
   const payload = await getPayload({ config })
   const days = getDaysDifference(new Date(validatedData.startDate), new Date(validatedData.endDate))
+
   try {
-    await payload.create({
-      collection: 'leases',
-      data: {
-        ...validatedData,
-        car: car,
-        customer: user,
-        paymentStatus: 'pending',
-        totalAmount: car.dailyRate * days,
-      },
-    })
+    await Promise.all([
+      payload.create({
+        collection: 'leases',
+        data: {
+          ...validatedData,
+          car: car,
+          customer: user,
+          paymentStatus: 'pending',
+          totalAmount: car.dailyRate * days,
+        },
+      }),
+      payload.update({
+        collection: 'cars',
+        id: car.id,
+        data: { available: false },
+      }),
+    ])
   } catch (error) {
     return handleError(error, 'Failed To Rent')
   }
@@ -63,5 +71,26 @@ export async function getAllUserLeases() {
       },
     })
     return lease || null
+  }
+}
+
+export async function cancelLease(lease: Lease) {
+  const payload = await getPayload({ config })
+  try {
+    await Promise.all([
+      payload.update({
+        collection: 'leases',
+        id: lease.id,
+        data: { paymentStatus: 'cancelled' },
+      }),
+      payload.update({
+        collection: 'cars',
+        // @ts-expect-error no-id-type
+        id: lease.car.id,
+        data: { available: true },
+      }),
+    ])
+  } catch (error) {
+    return handleError(error, 'Failed to Cancel!')
   }
 }

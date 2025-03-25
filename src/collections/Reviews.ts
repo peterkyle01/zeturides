@@ -56,13 +56,4 @@ export const Reviews: CollectionConfig = {
     useAsTitle: 'author',
     defaultColumns: ['author', 'rating', 'carRented', 'rentalDate', 'approved'],
   },
-  hooks: {
-    afterChange: [
-      ({ doc, operation }) => {
-        if (operation === 'create') {
-          console.log(`New review created by ${doc.author}`)
-        }
-      },
-    ],
-  },
 }

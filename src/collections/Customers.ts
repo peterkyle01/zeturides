@@ -51,18 +51,17 @@ export const Customers: CollectionConfig = {
         },
       ],
     },
+
     {
-      type: 'row',
-      fields: [
-        {
-          type: 'checkbox',
-          name: 'isValid',
-        },
-        {
-          name: 'licenseExpiryDate',
-          type: 'date',
-        },
-      ],
+      type: 'checkbox',
+      name: 'isValid',
+      admin: {
+        description: 'If customer is approved!',
+      },
+    },
+    {
+      name: 'licenseExpiryDate',
+      type: 'date',
     },
   ],
 }

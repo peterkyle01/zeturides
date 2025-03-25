@@ -22,6 +22,8 @@ const getPaymentStatusColor = (status: Lease['paymentStatus']) => {
       return 'bg-yellow-500/10 text-yellow-500 font-bold'
     case 'refunded':
       return 'bg-blue-500/10 text-blue-500 font-bold'
+    case 'cancelled':
+      return 'bg-red-500/10 text-red-500 font-bold'
     default:
       return 'bg-gray-500/10 text-gray-500 font-bold'
   }

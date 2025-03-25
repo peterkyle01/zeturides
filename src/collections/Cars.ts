@@ -102,6 +102,9 @@ export const Cars: CollectionConfig = {
       name: 'available',
       type: 'checkbox',
       defaultValue: true,
+      admin: {
+        description: 'If car is available to be leased',
+      },
     },
     {
       type: 'row',

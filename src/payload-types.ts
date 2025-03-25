@@ -73,6 +73,7 @@ export interface Config {
     reviews: Review;
     categories: Category;
     leases: Lease;
+    'contact-us': ContactUs;
     media: Media;
     users: User;
     'payload-locked-documents': PayloadLockedDocument;
@@ -86,6 +87,7 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     leases: LeasesSelect<false> | LeasesSelect<true>;
+    'contact-us': ContactUsSelect<false> | ContactUsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -163,6 +165,9 @@ export interface Car {
   dailyRate: number;
   location?: string | null;
   description?: string | null;
+  /**
+   * If car is available to be leased
+   */
   available?: boolean | null;
   mileage?: number | null;
   licensePlate?: string | null;
@@ -222,6 +227,9 @@ export interface Customer {
   licenseNumber?: string | null;
   phoneNumber?: string | null;
   address?: string | null;
+  /**
+   * If customer is approved!
+   */
   isValid?: boolean | null;
   licenseExpiryDate?: string | null;
   updatedAt: string;
@@ -262,11 +270,24 @@ export interface Lease {
   car: number | Car;
   startDate: string;
   endDate: string;
-  paymentStatus: 'pending' | 'paid' | 'refunded';
+  paymentStatus: 'pending' | 'paid' | 'refunded' | 'cancelled';
   pickupLocation?: string | null;
   returnLocation?: string | null;
   notes?: string | null;
   totalAmount: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-us".
+ */
+export interface ContactUs {
+  id: number;
+  fullname: string;
+  email: string;
+  message: string;
+  status?: ('pending' | 'resolved') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -313,6 +334,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'leases';
         value: number | Lease;
+      } | null)
+    | ({
+        relationTo: 'contact-us';
+        value: number | ContactUs;
       } | null)
     | ({
         relationTo: 'media';
@@ -467,6 +492,18 @@ export interface LeasesSelect<T extends boolean = true> {
   returnLocation?: T;
   notes?: T;
   totalAmount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-us_select".
+ */
+export interface ContactUsSelect<T extends boolean = true> {
+  fullname?: T;
+  email?: T;
+  message?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

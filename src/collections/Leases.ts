@@ -1,4 +1,3 @@
-import { updateCarAvailability } from '@/hooks/update-car-availability'
 import { CollectionConfig } from 'payload'
 
 export const Leases: CollectionConfig = {
@@ -47,6 +46,7 @@ export const Leases: CollectionConfig = {
         { label: 'Pending', value: 'pending' },
         { label: 'Paid', value: 'paid' },
         { label: 'Refunded', value: 'refunded' },
+        { label: 'Cancelled', value: 'cancelled' },
       ],
       required: true,
     },
@@ -73,9 +73,6 @@ export const Leases: CollectionConfig = {
       required: true,
     },
   ],
-  hooks: {
-    afterChange: [updateCarAvailability],
-  },
 }
 
 export default Leases

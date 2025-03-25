@@ -1,6 +1,20 @@
 import React from 'react'
 import { Calendar, MapPin, CreditCard, Clock, Car as CarIcon, User } from 'lucide-react'
 import { Lease } from '@/payload-types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { cancelLease } from '@/app/server-actions/leases'
+import { useRouter } from 'next/navigation'
 
 interface OrderCardProps {
   lease: Lease
@@ -8,9 +22,10 @@ interface OrderCardProps {
 
 const PaymentStatusBadge = ({ status }: { status: Lease['paymentStatus'] }) => {
   const colors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    paid: 'bg-green-100 text-green-800',
-    refunded: 'bg-red-100 text-red-800',
+    pending: 'bg-yellow-500/10 text-yellow-500 font-bold',
+    paid: 'bg-green-500/10 text-green-500 font-bold',
+    refunded: 'bg-blue-500/10 text-blue-500 font-bold',
+    cancelled: 'bg-red-500/10 text-red-500 font-bold',
   }
 
   return (
@@ -21,6 +36,7 @@ const PaymentStatusBadge = ({ status }: { status: Lease['paymentStatus'] }) => {
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
+  const router = useRouter()
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -34,6 +50,11 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
       style: 'currency',
       currency: 'KES',
     }).format(amount)
+  }
+
+  const onCancel = async () => {
+    await cancelLease(lease)
+    router.refresh()
   }
 
   return (
@@ -118,6 +139,25 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
           <p className="text-gray-700">{lease.notes}</p>
         </div>
       )}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button className="w-full">Cancel</Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your lease.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-600 hover:bg-red-800" onClick={onCancel}>
+              Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

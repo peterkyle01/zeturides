@@ -60,7 +60,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 </>
               )}
               <Link
-                href="#"
+                href="/contact-us"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground"
               >
                 Contact
