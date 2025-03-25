@@ -18,9 +18,11 @@ import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { getUser } from '@/app/server-actions/customers'
 import EditProfile from '@/components/user-defined/edit-profile'
+import { redirect } from 'next/navigation'
 
 export default async function ProfilePage() {
   const customer = await getUser()
+  if (!customer) redirect('/')
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
   }
@@ -75,7 +77,7 @@ export default async function ProfilePage() {
                   className={`font-bold px-2 py-1 not-italic rounded-full ${
                     customer.isValid
                       ? ' bg-blue-500/10 text-green-500 '
-                      : 'bg-red-500/10 text-red-500'
+                      : 'bg-rose-500/10 text-rose-500'
                   }`}
                 >
                   {customer.isValid ? 'Approved' : 'Pending Approval'}

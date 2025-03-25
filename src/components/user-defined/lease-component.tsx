@@ -13,6 +13,19 @@ import { Separator } from '@/components/ui/separator'
 import { CalendarDays, CreditCard, MapPin, ClipboardList } from 'lucide-react'
 import { Lease } from '@/payload-types'
 import { Button } from '../ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../ui/alert-dialog'
+import { cancelLease } from '@/app/server-actions/leases'
+import { useRouter } from 'next/navigation'
 
 const getPaymentStatusColor = (status: Lease['paymentStatus']) => {
   switch (status) {
@@ -23,13 +36,18 @@ const getPaymentStatusColor = (status: Lease['paymentStatus']) => {
     case 'refunded':
       return 'bg-blue-500/10 text-blue-500 font-bold'
     case 'cancelled':
-      return 'bg-red-500/10 text-red-500 font-bold'
+      return 'bg-rose-500/10 text-rose-500 font-bold'
     default:
       return 'bg-gray-500/10 text-gray-500 font-bold'
   }
 }
 
 export function LeaseComponent({ lease }: { lease: Lease }) {
+  const router = useRouter()
+  const onCancel = async () => {
+    await cancelLease(lease)
+    router.refresh()
+  }
   return (
     <Dialog>
       <DialogTrigger className="w-full" asChild>
@@ -125,6 +143,30 @@ export function LeaseComponent({ lease }: { lease: Lease }) {
               {lease.totalAmount.toLocaleString('en-KE', { style: 'currency', currency: 'KES' })}
             </span>
           </div>
+          {lease.paymentStatus === 'pending' && (
+            <div className="flex justify-between gap-10">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="grow bg-rose-600 hover:bg-rose-800">Cancel</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your lease.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction className="bg-rose-600 hover:bg-rose-800" onClick={onCancel}>
+                      Cancel
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button className="grow">Proceed To Checkout</Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

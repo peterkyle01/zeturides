@@ -25,7 +25,7 @@ const PaymentStatusBadge = ({ status }: { status: Lease['paymentStatus'] }) => {
     pending: 'bg-yellow-500/10 text-yellow-500 font-bold',
     paid: 'bg-green-500/10 text-green-500 font-bold',
     refunded: 'bg-blue-500/10 text-blue-500 font-bold',
-    cancelled: 'bg-red-500/10 text-red-500 font-bold',
+    cancelled: 'bg-rose-500/10 text-rose-500 font-bold',
   }
 
   return (
@@ -139,25 +139,30 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
           <p className="text-gray-700">{lease.notes}</p>
         </div>
       )}
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button className="w-full">Cancel</Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your lease.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-800" onClick={onCancel}>
-              Cancel
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {lease.paymentStatus === 'pending' && (
+        <div className="flex justify-between gap-10">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="grow bg-rose-600 hover:bg-rose-800">Cancel</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete your lease.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-rose-600 hover:bg-rose-800" onClick={onCancel}>
+                  Cancel
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button className="grow">Proceed To Checkout</Button>
+        </div>
+      )}
     </div>
   )
 }

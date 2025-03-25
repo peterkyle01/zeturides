@@ -1,10 +1,15 @@
+import { getUser } from '@/app/server-actions/customers'
 import { getAllUserLeases } from '@/app/server-actions/leases'
 import { Button } from '@/components/ui/button'
 import OrderList from '@/components/user-defined/order-list'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function OrderPage() {
+  const user = await getUser()
   const leases = await getAllUserLeases()
+
+  if (!user) redirect('/')
 
   if (!leases || leases.length === 0) {
     return (

@@ -291,8 +291,10 @@ export default function CarDetails({
                       <Link href={'/profile'}>
                         <Button className="w-full my-2">Profile Verification</Button>
                       </Link>
-                    ) : lease ? (
-                      <LeaseComponent lease={lease} />
+                    ) : lease &&
+                      lease?.paymentStatus !== 'cancelled' &&
+                      lease?.paymentStatus !== 'refunded' ? (
+                      <LeaseComponent lease={lease!} />
                     ) : (
                       <RentComponent car={car} />
                     )
