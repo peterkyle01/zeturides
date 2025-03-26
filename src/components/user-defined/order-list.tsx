@@ -1,12 +1,18 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { useReactTable, getCoreRowModel, ColumnDef, flexRender } from '@tanstack/react-table'
 import { Lease } from '@/payload-types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import { OrderCard } from './order-card'
 import { Input } from '../ui/input'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table'
+
+const colors = {
+  pending: 'bg-yellow-500/10 text-yellow-500 font-bold',
+  paid: 'bg-green-500/10 text-green-500 font-bold',
+  refunded: 'bg-blue-500/10 text-blue-500 font-bold',
+  cancelled: 'bg-rose-500/10 text-rose-500 font-bold',
+}
 
 const OrderListTable = ({ leases }: { leases: Lease[] }) => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -21,48 +27,6 @@ const OrderListTable = ({ leases }: { leases: Lease[] }) => {
     })
   }, [leases, searchTerm])
 
-  const columns: ColumnDef<Lease>[] = [
-    {
-      accessorKey: 'id',
-      header: 'Order #',
-      cell: ({ row }) => `#${row.original.id}`,
-    },
-    {
-      accessorKey: 'totalAmount',
-      header: 'Amount',
-      cell: ({ row }) =>
-        new Intl.NumberFormat('en-KE', {
-          style: 'currency',
-          currency: 'KES',
-        }).format(row.original.totalAmount),
-    },
-    {
-      accessorKey: 'car',
-      header: 'Car',
-      cell: ({ row }) => {
-        const lease = row.original
-        return typeof lease.car !== 'number' ? (
-          <div className="flex items-center">
-            {lease.car.make} {lease.car.model} ({lease.car.year})
-          </div>
-        ) : (
-          'N/A'
-        )
-      },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created At',
-      cell: ({ row }) => `${new Date(row.original.createdAt).toLocaleDateString()}`,
-    },
-  ]
-
-  const table = useReactTable({
-    data: filteredLeases,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
-
   return (
     <div>
       <div className="mb-4">
@@ -76,40 +40,53 @@ const OrderListTable = ({ leases }: { leases: Lease[] }) => {
       </div>
       <Table>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
+          <TableRow>
+            <TableHead>Order #</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Car</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Created At</TableHead>
+          </TableRow>
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <Dialog key={row.id}>
+          {filteredLeases.length > 0 ? (
+            filteredLeases.map((lease) => (
+              <Dialog key={lease.id}>
                 <DialogTrigger asChild>
-                  <TableRow className="cursor-pointer">
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
+                  <TableRow className="cursor-pointer h-16">
+                    <TableCell>#{lease.id}</TableCell>
+                    <TableCell>
+                      {new Intl.NumberFormat('en-KE', {
+                        style: 'currency',
+                        currency: 'KES',
+                      }).format(lease.totalAmount)}
+                    </TableCell>
+                    <TableCell>
+                      {typeof lease.car !== 'number'
+                        ? `${lease.car.make} ${lease.car.model} (${lease.car.year})`
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 capitalize rounded ${colors[lease.paymentStatus] || 'bg-gray-500/10 text-gray-500 font-bold'}`}
+                      >
+                        {lease.paymentStatus || 'Pending'}
+                      </span>
+                    </TableCell>
+                    <TableCell>{new Date(lease.createdAt).toLocaleDateString()}</TableCell>
                   </TableRow>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Lease Details</DialogTitle>
                   </DialogHeader>
-                  <OrderCard lease={row.original} />
+                  <OrderCard lease={lease} />
                 </DialogContent>
               </Dialog>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 No results.
               </TableCell>
             </TableRow>

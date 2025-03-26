@@ -12,7 +12,7 @@ export default async function CarsPage() {
 
   return (
     <div>
-      <CarsComponent mockCars={cars.docs} categories={categories.docs} />
+      <CarsComponent initialCars={cars.docs} categories={categories.docs} />
     </div>
   )
 }

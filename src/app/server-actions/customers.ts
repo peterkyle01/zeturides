@@ -8,6 +8,7 @@ import { cookies } from 'next/headers'
 import { Customer } from '@/payload-types'
 import { handleError } from '@/lib/utils'
 import { EditProfileFormData } from '@/lib/form-schemas'
+import { cancelUserLeases } from './leases'
 
 // Schema for user registration
 const signUpUserSchema = z
@@ -130,17 +131,18 @@ export async function signOutUser() {
 export async function editCustomer(customerId: number, updatedData: EditProfileFormData) {
   try {
     const payload = await getPayload({ config })
+    await Promise.all([
+      payload.update({
+        collection: 'customers',
+        id: customerId,
+        data: {
+          ...(updatedData as unknown as Partial<Customer>),
+          isValid: false,
+        },
+      }),
 
-    const updatedCustomer = await payload.update({
-      collection: 'customers',
-      id: customerId,
-      data: {
-        ...(updatedData as unknown as Partial<Customer>),
-        isValid: false,
-      },
-    })
-
-    return updatedCustomer
+      cancelUserLeases(customerId),
+    ])
   } catch (error) {
     console.error('Error updating customer:', error)
     return handleError(error, 'Error updating customer')

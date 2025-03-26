@@ -7,9 +7,10 @@ import { redirect } from 'next/navigation'
 
 export default async function OrderPage() {
   const user = await getUser()
-  const leases = await getAllUserLeases()
 
   if (!user) redirect('/')
+
+  const leases = await getAllUserLeases(user.id)
 
   if (!leases || leases.length === 0) {
     return (
@@ -34,7 +35,7 @@ export default async function OrderPage() {
                 <Link href="/cars">
                   <Button size="lg">Browse Cars</Button>
                 </Link>
-                <Link href="/contact">
+                <Link href="/contact-us">
                   <Button variant="outline" size="lg">
                     Contact Us
                   </Button>

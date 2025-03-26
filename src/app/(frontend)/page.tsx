@@ -152,7 +152,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl gap-8 py-12 md:grid-cols-2 lg:grid-cols-3">
-              {recentCars.map((car) => (
+              {recentCars.slice(0, 3).map((car) => (
                 <div
                   key={car.id}
                   className="group relative overflow-hidden rounded-lg border bg-background shadow-md transition-all hover:shadow-lg"
@@ -347,7 +347,7 @@ export default async function HomePage() {
                 <Link href="/cars">
                   <Button size="lg">Browse Cars</Button>
                 </Link>
-                <Link href="/contact">
+                <Link href="/contact-us">
                   <Button variant="outline" size="lg">
                     Contact Us
                   </Button>

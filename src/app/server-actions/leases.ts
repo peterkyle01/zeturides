@@ -58,15 +58,14 @@ export async function getOneLease(car: Car, user: Customer) {
   return lease[0] || null
 }
 
-export async function getAllUserLeases() {
-  const user = await getUser()
+export async function getAllUserLeases(userId: number) {
   const payload = await getPayload({ config })
-  if (user) {
+  if (userId) {
     const { docs: lease } = await payload.find({
       collection: 'leases',
       where: {
         customer: {
-          equals: user.id,
+          equals: userId,
         },
       },
     })
@@ -92,5 +91,29 @@ export async function cancelLease(lease: Lease) {
     ])
   } catch (error) {
     return handleError(error, 'Failed to Cancel!')
+  }
+}
+
+export async function cancelUserLeases(customerId: number) {
+  const payload = await getPayload({ config })
+  try {
+    await payload.update({
+      collection: 'leases',
+      where: {
+        and: [
+          {
+            customer: { equals: customerId },
+          },
+          {
+            paymentStatus: {
+              equals: 'pending',
+            },
+          },
+        ],
+      },
+      data: { paymentStatus: 'cancelled' },
+    })
+  } catch (error) {
+    return handleError(error, 'Error updating leases!')
   }
 }

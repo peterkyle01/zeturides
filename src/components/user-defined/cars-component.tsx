@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,11 +11,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Car,
-  ChevronDown,
-  ChevronUp,
   Filter,
   GripVertical,
   List,
@@ -28,6 +25,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import type { Category, Car as TCar } from '@/payload-types'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { getFilteredCars } from '@/app/server-actions/cars'
+import { debounce } from 'lodash'
+import { Skeleton } from '../ui/skeleton'
 
 const getFuelTypeIcon = (fuelType: string) => {
   switch (fuelType) {
@@ -43,65 +44,73 @@ const getFuelTypeIcon = (fuelType: string) => {
 }
 
 export default function CarsComponent({
-  mockCars,
+  initialCars,
   categories,
 }: {
-  mockCars: TCar[]
+  initialCars: TCar[]
   categories: Category[]
 }) {
-  const [searchTerm, setSearchTerm] = useState('')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [filterOpen, setFilterOpen] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [cars, setCars] = useState(initialCars)
+
+  // Get initial filter values from URL
+  const initialTransmission = searchParams.get('transmission') || 'all'
+  const initialFuelType = searchParams.get('fuelType') || 'all'
+  const initialModel = searchParams.get('model') || ''
+  const initialCategory = searchParams.get('category') || 'all'
+  const initialPrice = Number(searchParams.get('price')) || 20000
+
   const [filters, setFilters] = useState({
-    category: '',
-    transmission: '',
-    fuelType: '',
-    minPrice: 1000,
-    maxPrice: 50000,
-    availableOnly: false,
+    transmission: initialTransmission,
+    fuelType: initialFuelType,
+    model: initialModel,
+    category: initialCategory,
+    pricePerDay: initialPrice,
   })
+
   const [sortBy, setSortBy] = useState('price-asc')
 
-  // Filter cars based on selected filters
-  const filteredCars = mockCars.filter((car) => {
-    // Search term filter
-    if (
-      searchTerm &&
-      !`${car.make} ${car.model} ${car.year}`.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false
-    }
+  // Debounced function
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedFilterChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    debounce(async (newFilters: any) => {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams()
+        Object.entries(newFilters).forEach(([key, value]) => {
+          if (value && value !== 'all') params.append(key, value.toString())
+        })
+        router.push(`?${params.toString()}`)
 
-    // Category filter
-    if (filters.category && typeof car.categories !== filters.category) {
-      return false
-    }
+        const filteredCars = await getFilteredCars({
+          ...newFilters,
+          transmission: newFilters.transmission === 'all' ? undefined : newFilters.transmission,
+          fuelType: newFilters.fuelType === 'all' ? undefined : newFilters.fuelType,
+        })
+        setCars(filteredCars)
+      } catch (error) {
+        console.error('Error filtering cars:', error)
+      } finally {
+        setLoading(false)
+      }
+    }, 800), // Adjust debounce time as needed
+    [],
+  )
 
-    // Transmission filter
-    if (filters.transmission && car.transmission !== filters.transmission) {
-      return false
-    }
-
-    // Fuel type filter
-    if (filters.fuelType && car.fuelType !== filters.fuelType) {
-      return false
-    }
-
-    // Price filter
-    if (car.dailyRate < filters.minPrice || car.dailyRate > filters.maxPrice) {
-      return false
-    }
-
-    // Availability filter
-    if (filters.availableOnly && !car.available) {
-      return false
-    }
-
-    return true
-  })
+  // Handle filter changes
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setFilters(newFilters)
+    debouncedFilterChange(newFilters)
+  }
 
   // Sort cars based on selected sort option
-  const sortedCars = [...filteredCars].sort((a, b) => {
+  const sortedCars = [...cars].sort((a, b) => {
     switch (sortBy) {
       case 'price-asc':
         return a.dailyRate - b.dailyRate
@@ -118,15 +127,16 @@ export default function CarsComponent({
 
   // Reset all filters
   const resetFilters = () => {
-    setFilters({
-      category: '',
-      transmission: '',
-      fuelType: '',
-      minPrice: 1000,
-      maxPrice: 10000,
-      availableOnly: false,
-    })
-    setSearchTerm('')
+    const defaultFilters = {
+      transmission: 'all',
+      fuelType: 'all',
+      model: '',
+      category: 'all',
+      pricePerDay: 20000,
+    }
+    setFilters(defaultFilters)
+    handleFilterChange(defaultFilters)
+    router.push(window.location.pathname)
   }
 
   return (
@@ -146,13 +156,16 @@ export default function CarsComponent({
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search by make, model, or year..."
+                    placeholder="Search car..."
                     className="pl-8 w-full"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={filters.model}
+                    onChange={(e) => {
+                      const newFilters = { ...filters, model: e.target.value }
+                      setFilters(newFilters)
+                      handleFilterChange(newFilters)
+                    }}
                   />
                 </div>
-                <Button>Search</Button>
               </div>
             </div>
           </div>
@@ -181,14 +194,19 @@ export default function CarsComponent({
                     <label className="text-sm font-medium">Category</label>
                     <Select
                       value={filters.category}
-                      onValueChange={(value) => setFilters({ ...filters, category: value })}
+                      onValueChange={(value) => {
+                        const newFilters = { ...filters, category: value }
+                        setFilters(newFilters)
+                        handleFilterChange(newFilters)
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
                         {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.name}>
+                          <SelectItem key={category.id} value={category.id as unknown as string}>
                             {category.name}
                           </SelectItem>
                         ))}
@@ -199,7 +217,11 @@ export default function CarsComponent({
                     <label className="text-sm font-medium">Transmission</label>
                     <Select
                       value={filters.transmission}
-                      onValueChange={(value) => setFilters({ ...filters, transmission: value })}
+                      onValueChange={(value) => {
+                        const newFilters = { ...filters, transmission: value }
+                        setFilters(newFilters)
+                        handleFilterChange(newFilters)
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="All Transmissions" />
@@ -215,7 +237,11 @@ export default function CarsComponent({
                     <label className="text-sm font-medium">Fuel Type</label>
                     <Select
                       value={filters.fuelType}
-                      onValueChange={(value) => setFilters({ ...filters, fuelType: value })}
+                      onValueChange={(value) => {
+                        const newFilters = { ...filters, fuelType: value }
+                        setFilters(newFilters)
+                        handleFilterChange(newFilters)
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="All Fuel Types" />
@@ -231,45 +257,24 @@ export default function CarsComponent({
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Daily Price Range</label>
+                      <label className="text-sm font-medium">Maximum Daily Price</label>
                       <span className="text-sm text-muted-foreground">
-                        KSh {filters.minPrice.toLocaleString()} - KSh{' '}
-                        {filters.maxPrice.toLocaleString()}
+                        KSh {filters.pricePerDay.toLocaleString()}
                       </span>
                     </div>
                     <div className="pt-2">
                       <Slider
-                        defaultValue={[filters.minPrice, filters.maxPrice]}
+                        defaultValue={[filters.pricePerDay]}
                         min={1000}
-                        max={10000}
+                        max={20000}
                         step={500}
-                        onValueChange={(value) =>
-                          setFilters({
-                            ...filters,
-                            minPrice: value[0],
-                            maxPrice: value[1],
-                          })
-                        }
+                        onValueChange={(value) => {
+                          const newFilters = { ...filters, pricePerDay: value[0] }
+                          setFilters(newFilters)
+                          handleFilterChange(newFilters)
+                        }}
                       />
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="availableOnly"
-                      checked={filters.availableOnly}
-                      onCheckedChange={(checked) =>
-                        setFilters({
-                          ...filters,
-                          availableOnly: checked as boolean,
-                        })
-                      }
-                    />
-                    <label
-                      htmlFor="availableOnly"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Show available cars only
-                    </label>
                   </div>
                 </div>
               </div>
@@ -287,7 +292,7 @@ export default function CarsComponent({
                   </Button>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      {sortedCars.length} cars found
+                      {loading ? 'Loading...' : `${sortedCars.length} cars found`}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -327,7 +332,13 @@ export default function CarsComponent({
                   </div>
                 </div>
 
-                {sortedCars.length === 0 ? (
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((val) => (
+                      <Skeleton key={val} className="w-full h-80 rounded-md" />
+                    ))}
+                  </div>
+                ) : sortedCars.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Car className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="text-xl font-bold">No cars found</h3>
@@ -343,13 +354,13 @@ export default function CarsComponent({
                     {sortedCars.map((car) => (
                       <div
                         key={car.id}
-                        className="group relative overflow-hidden rounded-lg border bg-background shadow-md transition-all hover:shadow-lg"
+                        className="group relative overflow-hidden rounded-md border bg-background shadow-md transition-all hover:shadow-lg"
                       >
                         <div className="relative">
                           <div className="aspect-[4/3] overflow-hidden">
                             <Image
-                              // @ts-expect-error err
-                              src={car?.images[0]?.image?.url || '/placeholder.svg'}
+                              // @ts-expect-error no-type
+                              src={car.images?.[0]?.image?.url || '/placeholder.svg'}
                               width={500}
                               height={300}
                               alt={`${car.make} ${car.model}`}
@@ -362,7 +373,9 @@ export default function CarsComponent({
                             </div>
                           )}
                           <div className="absolute top-0 left-0 bg-primary text-primary-foreground px-2 py-1 text-xs font-medium">
-                            {typeof car.categories !== 'number' && car.categories.name}
+                            {typeof car.categories !== 'number'
+                              ? car.categories?.name
+                              : 'Unknown Category'}
                           </div>
                         </div>
                         <div className="p-4">
@@ -415,8 +428,8 @@ export default function CarsComponent({
                         <div className="sm:w-1/3 relative">
                           <div className="aspect-[4/3] sm:aspect-square overflow-hidden rounded-md">
                             <Image
-                              // @ts-expect-error err
-                              src={car.images[0]?.image?.url || '/placeholder.svg'}
+                              // @ts-expect-error no-type
+                              src={car.images?.[0]?.image?.url || '/placeholder.svg'}
                               width={300}
                               height={300}
                               alt={`${car.make} ${car.model}`}
@@ -429,7 +442,9 @@ export default function CarsComponent({
                             </div>
                           )}
                           <div className="absolute top-0 left-0 bg-primary text-primary-foreground px-2 py-1 text-xs font-medium">
-                            {typeof car.categories !== 'number' && car.categories.name}
+                            {typeof car.categories !== 'number'
+                              ? car.categories?.name
+                              : 'Unknown Category'}
                           </div>
                         </div>
                         <div className="sm:w-2/3 flex flex-col">
@@ -483,31 +498,6 @@ export default function CarsComponent({
                     ))}
                   </div>
                 )}
-
-                {/* Pagination */}
-                <div className="flex items-center justify-center space-x-2 py-4">
-                  <Button variant="outline" size="icon" disabled>
-                    <ChevronUp className="h-4 w-4 rotate-90" />
-                    <span className="sr-only">Previous</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0 font-medium bg-primary text-primary-foreground"
-                  >
-                    1
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-8 w-8 p-0 font-medium">
-                    2
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-8 w-8 p-0 font-medium">
-                    3
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <ChevronDown className="h-4 w-4 rotate-90" />
-                    <span className="sr-only">Next</span>
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
