@@ -26,6 +26,7 @@ import {
 } from '../ui/alert-dialog'
 import { cancelLease } from '@/app/server-actions/leases'
 import { useRouter } from 'next/navigation'
+import { getDaysDifference } from '@/lib/utils'
 
 const getPaymentStatusColor = (status: Lease['paymentStatus']) => {
   switch (status) {
@@ -88,7 +89,10 @@ export function LeaseComponent({ lease }: { lease: Lease }) {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Rental Period</span>
+              <span className="text-sm font-medium">
+                Rental Period&nbsp;(&nbsp;
+                {getDaysDifference(new Date(lease.startDate), new Date(lease.endDate))} Days&nbsp;)
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-4 pl-6">
               <div>
@@ -147,7 +151,7 @@ export function LeaseComponent({ lease }: { lease: Lease }) {
             <div className="flex justify-between gap-10">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button className="grow bg-rose-600 hover:bg-rose-800">Cancel</Button>
+                  <Button className="grow bg-rose-600 hover:bg-rose-800">Cancel Order</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

@@ -38,24 +38,26 @@ export async function createLease(car: Car, formData: CreateLeaseFormData) {
 
 export async function getOneLease(car: Car, user: Customer) {
   const payload = await getPayload({ config })
-  const { docs: lease } = await payload.find({
-    collection: 'leases',
-    where: {
-      and: [
-        {
-          car: {
-            equals: car.id,
+  if (user) {
+    const { docs: lease } = await payload.find({
+      collection: 'leases',
+      where: {
+        and: [
+          {
+            car: {
+              equals: car.id,
+            },
           },
-        },
-        {
-          customer: {
-            equals: user.id,
+          {
+            customer: {
+              equals: user.id,
+            },
           },
-        },
-      ],
-    },
-  })
-  return lease[0] || null
+        ],
+      },
+    })
+    return lease[0] || null
+  }
 }
 
 export async function getAllUserLeases(userId: number) {

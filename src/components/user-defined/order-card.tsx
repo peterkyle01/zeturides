@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { cancelLease } from '@/app/server-actions/leases'
 import { useRouter } from 'next/navigation'
+import { getDaysDifference } from '@/lib/utils'
 
 interface OrderCardProps {
   lease: Lease
@@ -89,11 +90,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 border-t pt-10">
         <div className="flex items-center">
           <Calendar className="w-5 h-5 text-gray-500 mr-2" />
           <div>
-            <p className="text-sm text-gray-500">Rental Period</p>
+            <p className="text-sm text-gray-500">
+              Rental Period&nbsp;(&nbsp;
+              {getDaysDifference(new Date(lease.startDate), new Date(lease.endDate))} Days&nbsp;)
+            </p>
             <p className="text-gray-700">
               {formatDate(lease.startDate)} - {formatDate(lease.endDate)}
             </p>
@@ -109,7 +113,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
       </div>
 
       {(lease.pickupLocation || lease.returnLocation) && (
-        <div className="border-t pt-4">
+        <div className="border-t pt-10">
           <div className="grid grid-cols-2 gap-4">
             {lease.pickupLocation && (
               <div className="flex items-start">
@@ -143,7 +147,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
         <div className="flex justify-between gap-10">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="grow bg-rose-600 hover:bg-rose-800">Cancel</Button>
+              <Button className="grow bg-rose-600 hover:bg-rose-800">Cancel Order</Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

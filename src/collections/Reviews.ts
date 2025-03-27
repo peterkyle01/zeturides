@@ -53,7 +53,7 @@ export const Reviews: CollectionConfig = {
     },
   ],
   admin: {
-    useAsTitle: 'author',
+    useAsTitle: 'reviewText',
     defaultColumns: ['author', 'rating', 'carRented', 'rentalDate', 'approved'],
   },
 }

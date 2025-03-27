@@ -16,15 +16,19 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarIcon, Car, CheckCircle, ChevronRight, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
+import { getHomeReviews } from '../server-actions/reviews'
+import { processReviewRatings } from '@/lib/utils'
 
 export default async function HomePage() {
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { docs: recentCars } = await payload.find({
-    collection: 'cars',
-    sort: 'createdAt',
-    limit: 6,
-  })
+  const payload = await getPayload({ config })
+  const [recentCars, reviews] = await Promise.all([
+    payload.find({
+      collection: 'cars',
+      sort: 'createdAt',
+      limit: 3,
+    }),
+    getHomeReviews(),
+  ])
   return (
     <div className="flex min-h-screen flex-col w-full">
       <main className="flex-1">
@@ -83,7 +87,7 @@ export default async function HomePage() {
                 <Image
                   alt="Hero Image"
                   // @ts-expect-error url
-                  src={recentCars?.[0].images?.[0].image.url}
+                  src={recentCars.docs[0].images?.[0].image.url}
                   width={600}
                   height={400}
                   className="object-cover"
@@ -152,7 +156,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl gap-8 py-12 md:grid-cols-2 lg:grid-cols-3">
-              {recentCars.slice(0, 3).map((car) => (
+              {recentCars.docs.map((car) => (
                 <div
                   key={car.id}
                   className="group relative overflow-hidden rounded-lg border bg-background shadow-md transition-all hover:shadow-lg"
@@ -258,75 +262,45 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl gap-8 py-12 md:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col justify-between space-y-4 rounded-lg border bg-background p-6">
-                <div className="space-y-2">
-                  <div className="flex space-x-1">
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
+              {processReviewRatings(reviews!)?.map((review) => (
+                <div
+                  key={review.id}
+                  className="flex flex-col justify-between space-y-4 rounded-lg border bg-background p-6"
+                >
+                  <div className="space-y-2">
+                    <div className="flex space-x-1">
+                      {[...Array(5)].map((_, index) => (
+                        <Star
+                          key={index}
+                          className={`h-5 w-5 ${index < parseInt(review.rating, 10) ? 'fill-yellow-500 text-yellow-500' : 'fill-gray-300 text-gray-300'}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-400">{review.reviewText}</p>
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Great service and fantastic cars. Will definitely use again!
-                  </p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-gray-100 p-2">
-                    <span className="text-sm font-medium">JD</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">John Doe</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Verified Customer</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col justify-between space-y-4 rounded-lg border bg-background p-6">
-                <div className="space-y-2">
-                  <div className="flex space-x-1">
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    The booking process was smooth and the car was perfect!
-                  </p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-gray-100 p-2">
-                    <span className="text-sm font-medium">JS</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Jane Smith</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Verified Customer</p>
+                  <div className="flex items-center space-x-4">
+                    <div className="rounded-full bg-gray-100 p-2">
+                      <span className="text-sm font-medium">
+                        {/* @ts-expect-error type */}
+                        {review.author.firstName.charAt(0).toUpperCase() +
+                          '.' +
+                          /* @ts-expect-error type */
+                          review.author.lastName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">
+                        {/* @ts-expect-error type */}
+                        {review.author.firstName + ' ' + review.author.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {/* @ts-expect-error type */}
+                        {review.author.isValid ? ' Verified Customer' : 'Unverified Customer'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-col justify-between space-y-4 rounded-lg border bg-background p-6">
-                <div className="space-y-2">
-                  <div className="flex space-x-1">
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                    <Star className="h-5 w-5 fill-primary text-primary" />
-                  </div>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Excellent customer service and competitive prices!
-                  </p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="rounded-full bg-gray-100 p-2">
-                    <span className="text-sm font-medium">RJ</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Robert Johnson</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Verified Customer</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>

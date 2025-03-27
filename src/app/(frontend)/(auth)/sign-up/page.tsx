@@ -78,9 +78,9 @@ export default function SignUp() {
 
       if (result?.error) {
         toast.error(result.error)
+      } else {
+        router.push('/cars')
       }
-
-      router.push('/')
     } catch (error) {
       toast.error(error as string)
     } finally {

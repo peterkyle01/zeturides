@@ -21,8 +21,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import type { Car, Customer, Lease } from '@/payload-types'
-import { copyTextToClipboard } from '@/lib/utils'
+import type { Car, Customer, Lease, Review } from '@/payload-types'
+import { copyTextToClipboard, timeAgo } from '@/lib/utils'
 import RentComponent from '@/components/user-defined/rent-component'
 import { LeaseComponent } from '@/components/user-defined/lease-component'
 
@@ -30,14 +30,19 @@ export default function CarDetails({
   car,
   user,
   lease = null,
+  reviews = null,
+  avgRating,
 }: {
   car: Car
   user: Customer
   lease?: Lease | null
+  reviews: Review[] | null
+  avgRating: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
   if (!car) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -63,6 +68,7 @@ export default function CarDetails({
     },
     { icon: <Calendar className="h-5 w-5" />, label: `${car.year}` },
   ]
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container px-4 py-8 mx-auto">
@@ -150,10 +156,14 @@ export default function CarDetails({
               <div className="flex items-center mt-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mr-1" />
                 <span className="text-muted-foreground">{car.location}</span>
-                <span className="mx-2">•</span>
+                {reviews?.length !== 0 && <span className="mx-2">•</span>}
                 <div className="flex items-center">
-                  <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                  <span className="text-muted-foreground">4.8 (24 reviews)</span>
+                  {reviews?.length !== 0 && (
+                    <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
+                  )}
+                  <span className="text-muted-foreground">
+                    {reviews?.length !== 0 && avgRating}&nbsp;&nbsp;({reviews?.length}&nbsp;reviews)
+                  </span>
                 </div>
               </div>
             </div>
@@ -178,7 +188,7 @@ export default function CarDetails({
                 <TabsTrigger value="features">Features</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
-              <TabsContent value="description" className="space-y-4">
+              <TabsContent value="description" className="space-y-4 text-sm md:text-base">
                 <h3 className="text-xl font-semibold">About this car</h3>
                 <p className="text-neutral-600">{car.description}</p>
                 <div className="grid grid-cols-2 gap-4 mt-4">
@@ -228,7 +238,7 @@ export default function CarDetails({
               </TabsContent>
               <TabsContent value="features" className="space-y-4">
                 <h3 className="text-xl font-semibold">Car Features</h3>
-                <div className="grid grid-cols-2 gap-y-2">
+                <div className="text-sm md:text-base grid grid-cols-2 gap-y-2">
                   {car.Features?.map((feature) => (
                     <div key={feature.id} className="flex items-center">
                       <Check className="h-4 w-4 text-primary mr-2" />
@@ -237,15 +247,72 @@ export default function CarDetails({
                   ))}
                 </div>
               </TabsContent>
-              <TabsContent value="reviews" className="space-y-4">
+              <TabsContent value="reviews" className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold">Customer Reviews</h3>
-                  <Badge variant="outline" className="flex items-center">
-                    <Star className="h-3 w-3 fill-yellow-500 text-yellow-500 mr-1" />
-                    4.8
-                  </Badge>
+                  <h3 className="text-xl font-semibold tracking-tight">Customer Reviews</h3>
+                  <div className="flex items-center space-x-2">
+                    {reviews?.length !== 0 && (
+                      <div className="flex items-center">
+                        <Star className="h-4 w-4 fill-yellow-500 text-yellow-500 mr-1" />
+                        <span className="font-medium">{avgRating}</span>
+                      </div>
+                    )}
+                    <Badge variant="outline">Overall Rating</Badge>
+                  </div>
                 </div>
-                <p className="text-muted-foreground">Reviews will be displayed here.</p>
+                <div className="space-y-4">
+                  {reviews?.length !== 0 ? (
+                    <>
+                      {reviews?.map((review) => (
+                        <div key={review.id} className="flex p-3">
+                          <div className="flex-shrink-0 mr-4">
+                            <div className="rounded-full bg-gray-200 w-10 h-10 flex items-center justify-center">
+                              <span className="text-sm font-medium">
+                                {/* @ts-expect-error type */}
+                                {review.author?.firstName?.charAt(0).toUpperCase() +
+                                  /* @ts-expect-error type */
+                                  (review.author?.lastName
+                                    ? /* @ts-expect-error type */
+                                      '.' + review.author?.lastName?.charAt(0).toUpperCase()
+                                    : '')}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-semibold text-sm">
+                                  {/* @ts-expect-error type */}
+                                  {review.author?.firstName +
+                                    /* @ts-expect-error type */
+                                    (review.author?.lastName ? ' ' + review.author?.lastName : '')}
+                                </h4>
+                                <div className="flex items-center space-x-1">
+                                  {[...Array(5)].map((_, index) => (
+                                    <Star
+                                      key={index}
+                                      className={`h-4 w-4 ${
+                                        index < parseInt(review.rating, 10)
+                                          ? 'fill-yellow-500 text-yellow-500'
+                                          : 'fill-gray-300 text-gray-300'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {timeAgo(review.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 mt-1">{review.reviewText}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <>No Reviews!</>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </div>
