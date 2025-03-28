@@ -34,6 +34,7 @@ export const Cars: CollectionConfig = {
         {
           name: 'transmission',
           type: 'select',
+          defaultValue: 'automatic',
           options: [
             { label: 'Automatic', value: 'automatic' },
             { label: 'Manual', value: 'manual' },
@@ -43,6 +44,7 @@ export const Cars: CollectionConfig = {
         {
           name: 'fuelType',
           type: 'select',
+          defaultValue: 'gasoline',
           options: [
             { label: 'Gasoline', value: 'gasoline' },
             { label: 'Diesel', value: 'diesel' },
@@ -65,11 +67,13 @@ export const Cars: CollectionConfig = {
           name: 'seats',
           type: 'number',
           required: true,
+          defaultValue: 5,
         },
         {
           name: 'doors',
           type: 'number',
           required: true,
+          defaultValue: 4,
         },
       ],
     },
@@ -120,29 +124,24 @@ export const Cars: CollectionConfig = {
       ],
     },
     {
-      type: 'row',
+      name: 'images',
+      type: 'array',
       fields: [
         {
-          name: 'images',
-          type: 'array',
-          fields: [
-            {
-              name: 'image',
-              type: 'upload',
-              relationTo: 'media',
-              required: true,
-            },
-          ],
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          required: true,
         },
+      ],
+    },
+    {
+      name: 'Features',
+      type: 'array',
+      fields: [
         {
-          name: 'Features',
-          type: 'array',
-          fields: [
-            {
-              name: 'Feature',
-              type: 'text',
-            },
-          ],
+          name: 'Feature',
+          type: 'text',
         },
       ],
     },

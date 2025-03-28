@@ -172,7 +172,7 @@ export default async function HomePage() {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-xl font-bold">{car.model + ' ' + car.make}</h3>
+                    <h3 className="text-xl font-bold">{car.make + ' ' + car.model}</h3>
                     <p className="text-sm text-muted-foreground">{car.make}</p>
                     <div className="mt-4 flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">

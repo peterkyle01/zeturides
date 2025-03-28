@@ -206,7 +206,7 @@ export default function CarsComponent({
                       <SelectContent>
                         <SelectItem value="all">All Categories</SelectItem>
                         {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id as unknown as string}>
+                          <SelectItem key={category.name} value={category.name}>
                             {category.name}
                           </SelectItem>
                         ))}
