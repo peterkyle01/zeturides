@@ -24,7 +24,7 @@ export default async function HomePage() {
   const [recentCars, reviews] = await Promise.all([
     payload.find({
       collection: 'cars',
-      sort: 'createdAt',
+      sort: '-createdAt',
       limit: 3,
     }),
     getHomeReviews(),

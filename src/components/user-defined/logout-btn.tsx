@@ -13,11 +13,13 @@ export default function LogoutBtn(user: Customer) {
   return (
     <>
       {user.firstName ? (
-        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-brand-brown text-black font-bold text-lg">
-          {user.firstName.charAt(0).toUpperCase() + '.' + user.lastName.charAt(0).toUpperCase()}
+        <div className="rounded-full bg-gray-200 p-2 border ">
+          <span className="text-sm font-bold">
+            {user.firstName.charAt(0).toUpperCase() + '.' + user.lastName.charAt(0).toUpperCase()}
+          </span>
         </div>
       ) : (
-        <p className="text-sm font-bold">ADMIN</p>
+        <p className="text-xs md:text-base font-bold">ADMIN</p>
       )}
       <Button size={'sm'} onClick={onLogOut}>
         Log Out
