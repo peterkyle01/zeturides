@@ -66,7 +66,14 @@ export async function getFilteredCars({
 
     if (transmission) filters.where.transmission = { equals: transmission }
     if (fuelType) filters.where.fuelType = { equals: fuelType }
-    if (model) filters.where.model = { equals: model }
+    if (model)
+      filters.where = {
+        or: [
+          { model: { like: model } },
+          { make: { like: model } },
+          { year: { like: Number(model) } },
+        ],
+      }
     if (pricePerDay) filters.where.dailyRate = { less_than_equal: pricePerDay }
 
     // Only add category filter if a valid category was found
