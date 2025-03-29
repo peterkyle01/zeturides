@@ -89,3 +89,22 @@ export async function getFilteredCars({
     return []
   }
 }
+
+export async function returnCar(carId: number) {
+  const payload = await getPayload({ config })
+  try {
+    await payload.update({
+      collection: 'cars',
+      where: {
+        car: {
+          equals: carId,
+        },
+      },
+      data: {
+        available: true,
+      },
+    })
+  } catch (error) {
+    handleError(error, 'Failed To Return!')
+  }
+}

@@ -31,6 +31,7 @@ import { cancelLease, paidLease } from '@/app/server-actions/leases'
 import { useRouter } from 'next/navigation'
 import { getDaysDifference, getRatingIndex } from '@/lib/utils'
 import { createReview, getUserAndCarReview } from '@/app/server-actions/reviews'
+import { returnCar } from '@/app/server-actions/cars'
 
 interface OrderCardProps {
   lease: Lease
@@ -91,6 +92,13 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
     [lease, router],
   )
 
+  const onReturnCar = useCallback(async () => {
+    //@ts-expect-error type
+    await returnCar(lease.car.id)
+    router.refresh()
+    //@ts-expect-error type
+  }, [lease.car.id, router])
+
   useEffect(() => {
     const fetchData = async () => {
       const fetchedReview = await getUserAndCarReview(lease)
@@ -117,7 +125,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
         </div>
         <PaymentStatusBadge status={lease.paymentStatus} />
       </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center">
           <CarIcon className="w-5 h-5 text-gray-500 mr-2" />
@@ -136,7 +143,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
           </span>
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-4 border-t pt-10">
         <div className="flex items-center">
           <Calendar className="w-5 h-5 text-gray-500 mr-2" />
@@ -158,7 +164,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
           </div>
         </div>
       </div>
-
       {(lease.pickupLocation || lease.returnLocation) && (
         <div className="border-t pt-10">
           <div className="grid grid-cols-2 gap-4">
@@ -183,7 +188,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
           </div>
         </div>
       )}
-
       {lease.notes && (
         <div className="border-t pt-4">
           <p className="text-sm text-gray-500">Notes</p>
@@ -299,6 +303,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({ lease }) => {
             )}
           </form>
         </Form>
+      )}
+
+      {lease.paymentStatus === 'paid' && (
+        <div className="w-full">
+          <Button onClick={onReturnCar} className="w-full">
+            Return Car
+          </Button>
+        </div>
       )}
     </div>
   )
