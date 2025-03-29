@@ -29,3 +29,14 @@ export const contactFormSchema = z.object({
 })
 
 export type ContactFormValues = z.infer<typeof contactFormSchema>
+
+export const reviewSchema = z.object({
+  rating: z.enum(['one', 'two', 'three', 'four', 'five'], {
+    required_error: 'Please select a rating',
+  }),
+  reviewText: z.string().min(10, {
+    message: 'Review must be at least 10 characters.',
+  }),
+})
+
+export type ReviewFormValues = z.infer<typeof reviewSchema>

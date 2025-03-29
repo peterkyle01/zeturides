@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '../ui/alert-dialog'
-import { cancelLease } from '@/app/server-actions/leases'
+import { cancelLease, paidLease } from '@/app/server-actions/leases'
 import { useRouter } from 'next/navigation'
 import { getDaysDifference } from '@/lib/utils'
 
@@ -168,7 +168,15 @@ export function LeaseComponent({ lease }: { lease: Lease }) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button className="grow">Proceed To Checkout</Button>
+              <Button
+                className="grow"
+                onClick={async () => {
+                  await paidLease(lease)
+                  router.refresh()
+                }}
+              >
+                Proceed To Checkout(Paid)
+              </Button>
             </div>
           )}
         </div>

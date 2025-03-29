@@ -80,7 +80,7 @@ const OrderListTable = ({ leases }: { leases: Lease[] }) => {
                   <DialogHeader>
                     <DialogTitle>Lease Details</DialogTitle>
                   </DialogHeader>
-                  <OrderCard lease={lease} />
+                  <OrderCard lease={lease}  />
                 </DialogContent>
               </Dialog>
             ))

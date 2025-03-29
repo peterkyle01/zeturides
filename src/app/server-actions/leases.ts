@@ -119,3 +119,16 @@ export async function cancelUserLeases(customerId: number) {
     return handleError(error, 'Error updating leases!')
   }
 }
+
+export async function paidLease(lease: Lease) {
+  const payload = await getPayload({ config })
+  try {
+    await payload.update({
+      collection: 'leases',
+      id: lease.id,
+      data: { paymentStatus: 'paid' },
+    })
+  } catch (error) {
+    return handleError(error, 'Failed to Lease!')
+  }
+}
