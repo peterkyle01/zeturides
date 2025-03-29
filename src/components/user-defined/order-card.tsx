@@ -30,11 +30,7 @@ import {
 import { cancelLease, paidLease } from '@/app/server-actions/leases'
 import { useRouter } from 'next/navigation'
 import { getDaysDifference, getRatingIndex } from '@/lib/utils'
-import {
-  checkUserAndCarReview,
-  createReview,
-  getUserAndCarReview,
-} from '@/app/server-actions/reviews'
+import { createReview, getUserAndCarReview } from '@/app/server-actions/reviews'
 
 interface OrderCardProps {
   lease: Lease
