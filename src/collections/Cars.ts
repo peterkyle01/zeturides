@@ -4,7 +4,6 @@ export const Cars: CollectionConfig = {
   slug: 'cars',
   admin: {
     useAsTitle: `model`,
-    hideAPIURL: true,
   },
   fields: [
     {

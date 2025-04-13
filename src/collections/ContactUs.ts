@@ -8,7 +8,6 @@ export const ContactUs: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'email',
-    hideAPIURL: true,
   },
   access: {
     create: () => true,
