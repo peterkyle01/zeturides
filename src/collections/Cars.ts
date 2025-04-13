@@ -2,6 +2,9 @@ import { CollectionConfig } from 'payload'
 
 export const Cars: CollectionConfig = {
   slug: 'cars',
+  auth: {
+    useAPIKey: true,
+  },
   admin: {
     useAsTitle: `model`,
   },

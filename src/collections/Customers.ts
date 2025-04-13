@@ -4,7 +4,9 @@ export const Customers: CollectionConfig = {
   slug: 'customers',
   auth: {
     verify: false,
+    useAPIKey: true,
   },
+
   admin: {
     useAsTitle: 'email',
   },

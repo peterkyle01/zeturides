@@ -2,6 +2,9 @@ import { CollectionConfig } from 'payload'
 
 export const Reviews: CollectionConfig = {
   slug: 'reviews',
+  auth: {
+    useAPIKey: true,
+  },
   labels: {
     singular: 'Car Review',
     plural: 'Car Reviews',

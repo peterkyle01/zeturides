@@ -2,6 +2,9 @@ import { CollectionConfig } from 'payload'
 
 export const ContactUs: CollectionConfig = {
   slug: 'contact-us',
+  auth: {
+    useAPIKey: true,
+  },
   labels: {
     singular: 'Contact Message',
     plural: 'Contact Messages',
